@@ -123,7 +123,7 @@ class EditActivity : BaseMemoActivity() {
     private fun showGalleryActivity() {
         startActivityForResult(
             Intent.createChooser(
-                Intent().setType("image/*").setAction(Intent.ACTION_GET_CONTENT).putExtra(
+                Intent().setType("image/*").setAction(Intent.ACTION_OPEN_DOCUMENT).putExtra(
                     Intent.EXTRA_ALLOW_MULTIPLE,
                     true
                 ),
@@ -206,10 +206,17 @@ class EditActivity : BaseMemoActivity() {
             ACTIVITY_PHOTO_SELECT_FROM_GALLERY -> {
                 if (data?.data != null) {
                     val imageUri = data.data ?: return
+                    contentResolver.takePersistableUriPermission(
+                        imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
                     addImage(imageUri)
                 } else if (data?.clipData != null) {
                     for (i in 0 until (data.clipData?.itemCount ?: 0)) {
                         val imageUri = data.clipData?.getItemAt(i)?.uri ?: continue
+                        contentResolver.takePersistableUriPermission(
+                            imageUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        )
                         addImage(imageUri)
                     }
                 }
