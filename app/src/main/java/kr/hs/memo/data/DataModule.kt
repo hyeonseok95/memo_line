@@ -1,9 +1,19 @@
 package kr.hs.memo.data
 
-import androidx.room.Room
 import kr.hs.memo.data.local.MemoDatabase
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
-    single { Room.databaseBuilder(get(), MemoDatabase::class.java, "memo_db.db").build() }
+    single { MemoDatabase.buildDatabase(androidContext()) }
+
+    single {
+        val db: MemoDatabase by inject()
+        db.memoDao
+    }
+
+    single {
+        val db: MemoDatabase by inject()
+        db.memoPhotoDao
+    }
 }

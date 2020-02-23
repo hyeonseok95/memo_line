@@ -1,12 +1,74 @@
 package kr.hs.memo.repository
 
-import kr.hs.memo.data.local.MemoDatabase
+import android.net.Uri
+import kr.hs.memo.data.local.MemoDao
+import kr.hs.memo.data.local.MemoPhotoDao
+import kr.hs.memo.data.model.MemoEntity
+import kr.hs.memo.data.model.MemoPhotoEntity
 import kr.hs.memo.model.Memo
+import kr.hs.memo.model.MemoPhoto
+import timber.log.Timber
 
-class MemoRepository(private val memoDatabase: MemoDatabase) {
-    suspend fun getAllMemoList() = memoDatabase.memoDao.selectAllMemo().map { it.toMemo() }
-    suspend fun getAllMemoSize() = memoDatabase.memoDao.getAllMemoSize()
-    suspend fun getMemoById(id: Long) = memoDatabase.memoDao.selectMemoEntitiyById(id).toMemo()
-    suspend fun updateMemo(memo: Memo) = memoDatabase.memoDao.update(memo.toMemoEntity())
-    suspend fun removeMemo(memo: Memo) = memoDatabase.memoDao.delete(memo.toMemoEntity())
+class MemoRepository(private val memoDao: MemoDao, private val memoPhotoDao: MemoPhotoDao) {
+    suspend fun getAllMemoList() = memoDao.selectAllMemoEntity().map {
+        val photos = memoPhotoDao.selectMemoEntitiyById(it.id ?: throw IllegalStateException())
+        Memo(it.id, it.title, it.content, photos.map {
+            if (it.url.substring(4).apply { Timber.tag("http test").d("$it") } == "http") {
+                MemoPhoto.ExternalPhoto(it.url)
+            } else {
+                MemoPhoto.InternalPhoto(Uri.parse(it.url))
+            }
+        })
+    }
+
+    suspend fun getAllMemoSize() = memoDao.getAllMemoSize()
+    suspend fun updateMemo(memo: Memo) {
+        if (memo.id == null) {
+            val memoId = memoDao.insert(MemoEntity(null, memo.title ?: "", memo.content ?: ""))
+            memo.photoUrls.forEach {
+                memoPhotoDao.insert(
+                    MemoPhotoEntity(
+                        null, memoId, when (it) {
+                            is MemoPhoto.ExternalPhoto -> it.url
+                            is MemoPhoto.InternalPhoto -> it.filepath.toString()
+                        }
+                    )
+                )
+            }
+        } else {
+            memoDao.update(MemoEntity(memo.id, memo.title ?: "", memo.content ?: ""))
+
+            memoPhotoDao.selectMemoEntitiyById(memo.id).forEach {
+                memoPhotoDao.delete(it)
+            }
+
+            memo.photoUrls.forEach {
+                memoPhotoDao.insert(
+                    MemoPhotoEntity(
+                        null, memo.id, when (it) {
+                            is MemoPhoto.ExternalPhoto -> it.url
+                            is MemoPhoto.InternalPhoto -> it.filepath.toString()
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun getMemoById(id: Long): Memo = memoDao.selectMemoEntityById(id).let {
+        Memo(it.id, it.title, it.content, memoPhotoDao.selectMemoEntitiyById(it.id ?: -1).map {
+            if (it.url.substring(4).apply { Timber.tag("http test").d("$it") } == "http") {
+                MemoPhoto.ExternalPhoto(it.url)
+            } else {
+                MemoPhoto.InternalPhoto(Uri.parse(it.url))
+            }
+        })
+    }
+
+    suspend fun removeMemo(memo: Memo) {
+        memoDao.delete(MemoEntity(memo.id, memo.title ?: "", memo.content ?: ""))
+        memoPhotoDao.selectMemoEntitiyById(memo.id ?: return).forEach {
+            memoPhotoDao.delete(it)
+        }
+    }
 }

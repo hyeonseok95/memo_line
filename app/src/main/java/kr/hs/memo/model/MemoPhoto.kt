@@ -1,6 +1,8 @@
 package kr.hs.memo.model
 
+import android.net.Uri
+
 sealed class MemoPhoto {
-    data class internalPhoto(val filepath: String) : MemoPhoto()
-    data class externalPhoto(val url: String) : MemoPhoto()
+    data class InternalPhoto(val filepath: Uri) : MemoPhoto()
+    data class ExternalPhoto(val url: String) : MemoPhoto()
 }

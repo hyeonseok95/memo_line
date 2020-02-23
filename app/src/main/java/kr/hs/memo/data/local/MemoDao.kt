@@ -1,15 +1,17 @@
 package kr.hs.memo.data.local
 
+import androidx.room.Dao
 import androidx.room.Query
 import kr.hs.memo.base.BaseDao
-import kr.hs.memo.data.model.MemoEntitiy
+import kr.hs.memo.data.model.MemoEntity
 
-interface MemoDao : BaseDao<MemoEntitiy> {
+@Dao
+interface MemoDao : BaseDao<MemoEntity> {
     @Query("SELECT * FROM memo")
-    suspend fun selectAllMemo(): List<MemoEntitiy>
+    suspend fun selectAllMemoEntity(): List<MemoEntity>
 
     @Query("SELECT * FROM memo WHERE id = :id")
-    suspend fun selectMemoEntitiyById(id: Long): MemoEntitiy
+    suspend fun selectMemoEntityById(id: Long): MemoEntity
 
     @Query("SELECT COUNT(*) FROM memo")
     suspend fun getAllMemoSize(): Long

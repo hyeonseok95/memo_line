@@ -15,13 +15,14 @@ class MemoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        context = applicationContext
+
         Timber.plant(Timber.DebugTree())
 
         startKoin {
             androidContext(this@MemoApplication)
             modules(
                 listOf(
-                    applicationModule,
                     presentationModule,
                     usecaseModule,
                     repositoryModule,
@@ -31,7 +32,7 @@ class MemoApplication : Application() {
         }
     }
 
-    val applicationModule = module {
-        single<Context> { this@MemoApplication }
+    companion object {
+        lateinit var context: Context
     }
 }

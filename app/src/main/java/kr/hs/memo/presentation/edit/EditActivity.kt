@@ -1,9 +1,12 @@
-package kr.hs.memo.presentation.memo
+package kr.hs.memo.presentation.edit
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -12,20 +15,42 @@ import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_memo.*
+import kotlinx.android.synthetic.main.activity_edit.*
 import kotlinx.android.synthetic.main.dialog_memo_external_url.view.*
 import kr.hs.memo.R
 import kr.hs.memo.base.BaseMemoActivity
-import kr.hs.memo.presentation.memo.adapter.MemoImageAdapter
+import kr.hs.memo.databinding.ActivityEditBinding
+import kr.hs.memo.model.MemoPhoto
+import kr.hs.memo.presentation.edit.adapter.MemoImageAdapter
+import kr.hs.memo.visible
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class MemoActivity : BaseMemoActivity() {
+class EditActivity : BaseMemoActivity() {
+    private val binding by lazy {
+        ActivityEditBinding.inflate(
+            layoutInflater,
+            null,
+            true
+        )
+    }
+
+    private val editViewModel: EditViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_memo)
+        setContentView(binding.root)
+
+        binding.lifecycleOwner = this
+        binding.editviewmodel = editViewModel
 
         bindView()
+
+        intent.getLongExtra(EXTRA_MEMO_ID, -1).takeIf { it != -1L }?.let {
+            editViewModel.requestMemo(it)
+        }
     }
 
     private fun bindView() {
@@ -41,6 +66,11 @@ class MemoActivity : BaseMemoActivity() {
                     }
 
                     R.id.save -> {
+                        editViewModel.saveMemo(
+                            edit_title.text.toString(),
+                            edit_content?.text.toString(),
+                            (viewpager_images.adapter as MemoImageAdapter).getItems()
+                        )
                     }
                 }
                 true
@@ -60,7 +90,19 @@ class MemoActivity : BaseMemoActivity() {
             }
         }
 
-        viewpager_images.adapter = MemoImageAdapter()
+        viewpager_images.adapter = MemoImageAdapter(this)
+
+        editViewModel.finishLiveData.observe {
+            finish()
+        }
+
+        editViewModel.memoLiveData.observe {
+            it.photoUrls.forEach {
+                viewpager_images.visible()
+                text_image_title.visible()
+                (viewpager_images.adapter as MemoImageAdapter).add(it)
+            }
+        }
     }
 
     private fun showAddImageDialog() {
@@ -93,7 +135,24 @@ class MemoActivity : BaseMemoActivity() {
     private var contentUri: Uri? = null
 
     private fun showCameraActivity() {
-        // TODO: Camera Permission 받아야함 : 요구하는 경우 있음.
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                PERMISSIONS_REQUEST_CAMERA
+            )
+
+            return
+        }
+
         val values = ContentValues().apply {
             val fileName = "HSNote-${SystemClock.currentThreadTimeMillis()}.jpg"
 
@@ -112,7 +171,7 @@ class MemoActivity : BaseMemoActivity() {
                     contentUri = this
                 }
             )
-            startActivityForResult(this, ACTIVITY_PHOTO_FORM_CAMERA)
+            startActivityForResult(this, ACTIVITY_PHOTO_FROM_CAMERA)
         }
     }
 
@@ -126,7 +185,7 @@ class MemoActivity : BaseMemoActivity() {
                 dialogInterface.cancel()
             }
             .setPositiveButton("확인") { _, _ ->
-                Toast.makeText(this, dialogView.edit_external_url.text, Toast.LENGTH_SHORT).show()
+                addImage(dialogView.edit_external_url.text.toString())
             }
             .setCancelable(false)
             .show()
@@ -147,25 +206,66 @@ class MemoActivity : BaseMemoActivity() {
             ACTIVITY_PHOTO_SELECT_FROM_GALLERY -> {
                 if (data?.data != null) {
                     val imageUri = data.data ?: return
-                    Picasso.get().load(imageUri).fit().centerCrop().into(img)
+                    addImage(imageUri)
                 } else if (data?.clipData != null) {
                     for (i in 0 until (data.clipData?.itemCount ?: 0)) {
                         val imageUri = data.clipData?.getItemAt(i)?.uri ?: continue
-                        Picasso.get().load(imageUri).fit().centerCrop().into(img)
+                        addImage(imageUri)
                     }
                 }
             }
 
-            ACTIVITY_PHOTO_FORM_CAMERA -> {
-                Picasso.get().load(contentUri).fit().centerCrop().into(img)
+            ACTIVITY_PHOTO_FROM_CAMERA -> {
+                addImage(contentUri ?: return)
+            }
+        }
+    }
+
+    private fun addImage(uri: Uri) {
+        grantUriPermission(applicationContext.packageName, uri, FLAG_GRANT_READ_URI_PERMISSION)
+        viewpager_images.visible()
+        text_image_title.visible()
+        (viewpager_images.adapter as MemoImageAdapter).add(MemoPhoto.InternalPhoto(uri))
+    }
+
+    private fun addImage(url: String) {
+        viewpager_images.visible()
+        text_image_title.visible()
+        (viewpager_images.adapter as MemoImageAdapter).add(MemoPhoto.ExternalPhoto(url))
+    }
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode) {
+            PERMISSIONS_REQUEST_CAMERA -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    showCameraActivity()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "권한이 없어 카메라를 실행할 수 없습니다.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
     }
 
     companion object {
-        fun newIntent(context: Context) = Intent(context, MemoActivity::class.java)
+        fun newIntent(context: Context, memoId: Long? = null) =
+            Intent(context, EditActivity::class.java).putExtra(EXTRA_MEMO_ID, memoId)
+
+        private const val EXTRA_MEMO_ID = "extra_memo_id"
 
         private const val ACTIVITY_PHOTO_SELECT_FROM_GALLERY = 1
-        private const val ACTIVITY_PHOTO_FORM_CAMERA = 2
+        private const val ACTIVITY_PHOTO_FROM_CAMERA = 2
+
+        private const val PERMISSIONS_REQUEST_CAMERA = 1
     }
 }

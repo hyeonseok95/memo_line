@@ -7,9 +7,9 @@
     android:layout_height="match_parent">
 
     <ImageView
+        android:id="@+id/img_thumbnail"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@android:color/holo_red_light" />
+        android:layout_height="match_parent" />
 
     <TextView
         android:id="@+id/btn_memo_remove"
@@ -25,22 +25,5 @@
         android:textSize="10pt"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/btn_memo_add"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:gravity="start"
-        android:text="이미지를 추가하려면 이 영역을 눌러주세요."
-        android:textColor="#f5f6f7"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
