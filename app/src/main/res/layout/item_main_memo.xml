@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/constraint_memo_item"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="130dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/selector_bg_memo_item"
+    android:clickable="true"
+    android:focusable="true">
+
+    <View
+        android:id="@+id/view_memo_item"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/base_shape_black_circle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/text_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="15dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="이세상에서가장긴제목이세상에서가장긴제목이세상에서가장긴제목이세상에서가장긴제목이세상에서가장긴제목"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/view_memo_item"
+        app:layout_constraintEnd_toStartOf="@id/img_thumbnail"
+        app:layout_constraintStart_toEndOf="@id/view_memo_item"
+        app:layout_constraintTop_toTopOf="@id/view_memo_item" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/text_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="20dp"
+        android:ellipsize="end"
+        android:lineSpacingExtra="2dp"
+        android:maxLines="3"
+        android:text="이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용이세상에서가장긴내용"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/img_thumbnail"
+        app:layout_constraintStart_toStartOf="@id/text_title"
+        app:layout_constraintTop_toBottomOf="@id/text_title" />
+
+    <ImageView
+        android:id="@+id/img_thumbnail"
+        android:layout_width="130dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="10dp"
+        android:src="@android:color/darker_gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
