@@ -14,9 +14,7 @@ import timber.log.Timber
 class MemoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-
-        context = applicationContext
-
+        
         Timber.plant(Timber.DebugTree())
 
         startKoin {
@@ -30,9 +28,5 @@ class MemoApplication : Application() {
                 )
             )
         }
-    }
-
-    companion object {
-        lateinit var context: Context
     }
 }
