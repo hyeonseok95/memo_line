@@ -2,6 +2,8 @@ package kr.hs.memo.presentation.detail.adapter
 
 import android.app.Activity
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import com.squareup.picasso.Callback
 import com.squareup.picasso.Picasso
@@ -30,12 +32,11 @@ class DetailImageAdapter(private val activity: Activity) :
     override fun onBindViewHolder(holder: MemoImageViewHolder, position: Int) {
         val currentItem = itemList[position]
 
-        holder.itemView.apply {
+        holder.apply {
             when (currentItem) {
                 is MemoPhoto.InternalPhoto -> {
-
                     Picasso.get().load(currentItem.filepath).fit().centerCrop()
-                        .into(img_thumbnail, object : Callback {
+                        .into(thumbnail, object : Callback {
                             override fun onSuccess() {}
                             override fun onError(e: Exception?) {
                                 itemList.remove(currentItem)
@@ -46,16 +47,17 @@ class DetailImageAdapter(private val activity: Activity) :
 
                                 notifyDataSetChanged()
                                 Toast.makeText(
-                                    context,
+                                    activity,
                                     "${currentItem.filepath} 이미지를 불러오는데 실패하였습니다.",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
                         })
                 }
+
                 is MemoPhoto.ExternalPhoto -> {
                     Picasso.get().load(currentItem.url).fit().centerCrop()
-                        .into(img_thumbnail, object : Callback {
+                        .into(thumbnail, object : Callback {
                             override fun onSuccess() {}
                             override fun onError(e: Exception?) {
                                 itemList.remove(currentItem)
@@ -66,7 +68,7 @@ class DetailImageAdapter(private val activity: Activity) :
 
                                 notifyDataSetChanged()
                                 Toast.makeText(
-                                    context,
+                                    activity,
                                     "${currentItem.url} 이미지를 불러오는데 실패하였습니다.",
                                     Toast.LENGTH_LONG
                                 ).show()
@@ -75,18 +77,11 @@ class DetailImageAdapter(private val activity: Activity) :
                 }
             }
 
-            img_thumbnail.onClick {
+            thumbnail.onClick {
 
             }
 
-            btn_memo_remove.onClick {
-                itemList.remove(currentItem)
-                if (itemList.isEmpty()) {
-                    activity.viewpager_images.gone()
-                    activity.text_image_title.gone()
-                }
-                notifyDataSetChanged()
-            }
+            memoRemoveButton.gone()
         }
     }
 
@@ -98,6 +93,9 @@ class DetailImageAdapter(private val activity: Activity) :
     /**
      * ViewHolder
      */
-    inner class MemoImageViewHolder(view: View) : BaseMemoViewHolder(view)
+    inner class MemoImageViewHolder(view: View) : BaseMemoViewHolder(view) {
+        val thumbnail: ImageView = view.img_thumbnail
+        val memoRemoveButton: TextView = view.btn_memo_remove
+    }
 }
 

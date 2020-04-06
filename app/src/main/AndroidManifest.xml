@@ -19,10 +19,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".presentation.main.MainActivity" />
-        <activity android:name=".presentation.edit.EditActivity" />
-        <activity android:name=".presentation.detail.DetailActivity" />
-        <activity android:name=".presentation.PermissionActivity">
+        <activity
+            android:name=".presentation.main.MainActivity"
+            android:configChanges="orientation|screenSize" />
+        <activity
+            android:name=".presentation.edit.EditActivity"
+            android:configChanges="orientation|screenSize" />
+        <activity
+            android:name=".presentation.detail.DetailActivity"
+            android:configChanges="orientation|screenSize" />
+        <activity
+            android:name=".presentation.PermissionActivity"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

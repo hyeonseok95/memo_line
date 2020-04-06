@@ -9,5 +9,5 @@ import kr.hs.memo.data.model.MemoPhotoEntity
 @Dao
 interface MemoPhotoDao : BaseDao<MemoPhotoEntity> {
     @Query("SELECT * FROM memophoto WHERE memo_id = :memoId")
-    suspend fun selectMemoEntitiyById(memoId: Long): List<MemoPhotoEntity>
+    suspend fun selectMemoEntityById(memoId: Long): List<MemoPhotoEntity>
 }

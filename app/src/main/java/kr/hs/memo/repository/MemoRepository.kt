@@ -11,7 +11,7 @@ import timber.log.Timber
 
 class MemoRepository(private val memoDao: MemoDao, private val memoPhotoDao: MemoPhotoDao) {
     suspend fun getAllMemoList() = memoDao.selectAllMemoEntity().map {
-        val photos = memoPhotoDao.selectMemoEntitiyById(it.id ?: throw IllegalStateException())
+        val photos = memoPhotoDao.selectMemoEntityById(it.id ?: throw IllegalStateException())
         Memo(it.id, it.title, it.content, photos.map {
             if (it.url.substring(4).apply { Timber.tag("http test").d("$it") } == "http") {
                 MemoPhoto.ExternalPhoto(it.url)
@@ -38,7 +38,7 @@ class MemoRepository(private val memoDao: MemoDao, private val memoPhotoDao: Mem
         } else {
             memoDao.update(MemoEntity(memo.id, memo.title ?: "", memo.content ?: ""))
 
-            memoPhotoDao.selectMemoEntitiyById(memo.id).forEach {
+            memoPhotoDao.selectMemoEntityById(memo.id).forEach {
                 memoPhotoDao.delete(it)
             }
 
@@ -56,7 +56,7 @@ class MemoRepository(private val memoDao: MemoDao, private val memoPhotoDao: Mem
     }
 
     suspend fun getMemoById(id: Long): Memo = memoDao.selectMemoEntityById(id).let {
-        Memo(it.id, it.title, it.content, memoPhotoDao.selectMemoEntitiyById(it.id ?: -1).map {
+        Memo(it.id, it.title, it.content, memoPhotoDao.selectMemoEntityById(it.id ?: -1).map {
             if (it.url.substring(4).apply { Timber.tag("http test").d("$it") } == "http") {
                 MemoPhoto.ExternalPhoto(it.url)
             } else {
@@ -67,7 +67,7 @@ class MemoRepository(private val memoDao: MemoDao, private val memoPhotoDao: Mem
 
     suspend fun removeMemo(memo: Memo) {
         memoDao.delete(MemoEntity(memo.id, memo.title ?: "", memo.content ?: ""))
-        memoPhotoDao.selectMemoEntitiyById(memo.id ?: return).forEach {
+        memoPhotoDao.selectMemoEntityById(memo.id ?: return).forEach {
             memoPhotoDao.delete(it)
         }
     }
